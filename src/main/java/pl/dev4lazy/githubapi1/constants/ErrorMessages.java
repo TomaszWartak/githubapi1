@@ -1,8 +1,10 @@
 package pl.dev4lazy.githubapi1.constants;
 
-public final class ErrorMessages {
-    private ErrorMessages() {}
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public final class ErrorMessages {
     public static final String USER_NOT_FOUND = "User '%s' not found";
     public static final String REPOSITORY_NOT_FOUND = "Repository '%s/%s' not found";
     public static final String EMPTY_BODY_FOR_USER =

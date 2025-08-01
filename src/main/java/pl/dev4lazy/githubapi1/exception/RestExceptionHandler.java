@@ -17,15 +17,15 @@ import static pl.dev4lazy.githubapi1.constants.ErrorMessages.*;
 
 @RestControllerAdvice
 public class RestExceptionHandler {
-    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
-    public ResponseEntity<ErrorResponse> handleMethodNotAllowed( HttpRequestMethodNotSupportedException ex) {
-        ErrorResponse error = new ErrorResponse(
+    @ExceptionHandler( HttpRequestMethodNotSupportedException.class )
+    public ResponseEntity<ErrorResponse> handleMethodNotAllowed( final HttpRequestMethodNotSupportedException ex) {
+        final ErrorResponse error = new ErrorResponse(
                 HttpStatus.METHOD_NOT_ALLOWED.value(),
                 String.format( HTTP_METHOD_NOT_ALLOWED, ex.getMethod( ) )
         );
         return ResponseEntity
-                .status(HttpStatus.METHOD_NOT_ALLOWED)
-                .body(error);
+                .status( HttpStatus.METHOD_NOT_ALLOWED )
+                .body( error );
     }
 
 
@@ -45,8 +45,8 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler( NoHandlerFoundException.class )
-    public ResponseEntity<ErrorResponse> handleNotFound(NoHandlerFoundException ex) {
-        ErrorResponse err = new ErrorResponse(
+    public ResponseEntity<ErrorResponse> handleNotFound( final NoHandlerFoundException ex ) {
+        final ErrorResponse err = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 String.format( ENDPOINT_NOT_FOUND, ex.getRequestURL() )
         );
@@ -54,8 +54,8 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler( UserNotFoundException.class )
-    public ResponseEntity< ErrorResponse > handleUserNotFoundException(UserNotFoundException ex) {
-        ErrorResponse body = new ErrorResponse(
+    public ResponseEntity< ErrorResponse > handleUserNotFoundException( final UserNotFoundException ex) {
+        final ErrorResponse body = new ErrorResponse(
                 HttpStatus.NOT_FOUND.value(),
                 ex.getMessage()
         );
