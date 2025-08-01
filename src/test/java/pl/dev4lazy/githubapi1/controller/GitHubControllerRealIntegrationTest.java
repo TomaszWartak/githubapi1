@@ -14,6 +14,7 @@ import pl.dev4lazy.githubapi1.dto.RepositoryResponse;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -30,29 +31,50 @@ class GitHubControllerRealIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    final String username = "TomaszWartak";
+    final String umsRepoName = "ums";
+    final String taskManagerRepoName = "TaskManager";
+    final String githubApi1RepoName = "githubapi1";
+
+
     @Test
     void givenTomaszWartak_whenGetRepos_thenReturnReposWithBranches() throws Exception {
+        // Attention: test created for a specific case where there are 3 specific repositories of user TomaszWartak
+
         // given
-        final RepositoryResponse expectedUmsRepoResponse = createUmsRepoResponse();
-        final RepositoryResponse expectedTaskManagerRepoResponse = createTaskManagerRepoResponse();
-        final List<RepositoryResponse> expectedResponses = List.of( expectedUmsRepoResponse, expectedTaskManagerRepoResponse );
+        final String uri = String.format( "/users/%s/repos", username );
 
         // when
-        final MvcResult mvcResult = mockMvc.perform( get( "/users/TomaszWartak/repos" ) )
+        final MvcResult mvcResult = mockMvc.perform( get( uri ) )
                 .andExpect( status().isOk() )
                 .andReturn();
 
         // then
         final String json = mvcResult.getResponse().getContentAsString();
-        final List<RepositoryResponse> actual = objectMapper.readValue(
+        final List<RepositoryResponse> actualResponses = objectMapper.readValue(
                 json,
                 new TypeReference<>() {}
         );
 
-        assertThat(actual)
+        final List<RepositoryResponse> expectedResponsesForFullCheck = List.of(
+                createUmsRepoResponse(),
+                createTaskManagerRepoResponse() );
+
+        assertThat( actualResponses )
+                .filteredOn(r -> Set.of( umsRepoName, taskManagerRepoName ).contains( r.name() ))
                 .usingRecursiveComparison()
                 .ignoringCollectionOrder()
-                .isEqualTo( expectedResponses );
+                .isEqualTo( expectedResponsesForFullCheck );
+
+        final RepositoryResponse expectedResponseWithoutShaCheck = actualResponses.stream()
+                .filter(r -> githubApi1RepoName.equals( r.name() ))
+                .findFirst()
+                .orElseThrow( () -> new AssertionError( String.format("Repo '%s' should be present", githubApi1RepoName )));
+
+        assertThat( expectedResponseWithoutShaCheck.branches() )
+                .isNotEmpty()
+                .extracting( BranchInfo::lastCommitSha )
+                .doesNotContainNull();
     }
 
     private RepositoryResponse createUmsRepoResponse() {
@@ -71,8 +93,8 @@ class GitHubControllerRealIntegrationTest {
         );
 
         return RepositoryResponse.builder()
-                .ownerLogin( "TomaszWartak" )
-                .name( "ums" )
+                .ownerLogin( username )
+                .name( umsRepoName )
                 .branches( repoUmsBranchInfos )
                 .build();
     }
@@ -87,9 +109,10 @@ class GitHubControllerRealIntegrationTest {
         );
 
         return RepositoryResponse.builder()
-                .ownerLogin( "TomaszWartak" )
-                .name( "TaskManager" )
+                .ownerLogin( username )
+                .name( taskManagerRepoName )
                 .branches( repoTaskManagerBranchInfos )
                 .build();
     }
+
 }
